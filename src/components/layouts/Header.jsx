@@ -8,85 +8,14 @@ import {
   faMinus,
 } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { gsap } from "gsap";
-
-const MENU_LIST = [
-  {
-    index: 0,
-    name: "Home",
-    pathname: "/",
-    isOpen: false,
-    subMenuList: [],
-  },
-  {
-    index: 1,
-    name: "About",
-    pathname: "",
-    isOpen: false,
-    subMenuList: [
-      {
-        index: 0,
-        name: "Intro",
-        pathname: "/about/intro",
-      },
-      {
-        index: 1,
-        name: "Privacy",
-        pathname: "/about/privacy",
-      },
-      {
-        index: 2,
-        name: "Terms",
-        pathname: "/about/terms",
-      },
-    ],
-  },
-  {
-    index: 2,
-    name: "More",
-    pathname: "",
-    isOpen: false,
-    subMenuList: [
-      {
-        index: 0,
-        name: "신상",
-        pathname: "/more/new",
-      },
-      {
-        index: 1,
-        name: "인기",
-        pathname: "/more/popular",
-      },
-      {
-        index: 2,
-        name: "상의",
-        pathname: "/more/top",
-      },
-      {
-        index: 3,
-        name: "아우터",
-        pathname: "/more/outer",
-      },
-      {
-        index: 4,
-        name: "바지",
-        pathname: "/more/pants",
-      },
-      {
-        index: 5,
-        name: "신발",
-        pathname: "/more/shoes",
-      },
-    ],
-  },
-];
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [menuList, setMenuList] = useState([...MENU_LIST]);
+  const [activeIdx, setActiveIdx] = useState(null);
   const sidebarRef = useRef(); // 사이드바 엘레먼트를 담고 있는 레퍼런스
-  const menuRef = useRef(); // 서브메뉴 엘레먼트를 담고 있는 레퍼런스
+  const location = useLocation();
 
   /**
    * @desc 사이드바 여부에 따른 애니메이션 동작
@@ -109,30 +38,15 @@ export default function Header() {
   }, [isMenuOpen]);
 
   /**
-   * @desc 부모 메뉴 클릭 후 애니메이션 동작
-   */
-  useEffect(() => {
-    const menuEle = menuRef.current;
-    const duration = 0.3;
-
-    if (menuEle) {
-      const menuItems = Array.from(menuEle.querySelectorAll("li"));
-      if (menuItems) {
-        gsap.set(menuItems, {
-          height: "auto",
-          display: "block",
-        });
-        gsap.from(menuItems, { height: 0, duration, stagger: 0.1 });
-      }
-    }
-  }, [menuList]);
-
-  /**
    * @desc 바깥 영역 클릭 시 사이드바 닫음
    */
   useEffect(() => {
     const handleOutsideClick = (event) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target) &&
+        isMenuOpen
+      ) {
         closeSidebar();
       }
     };
@@ -142,67 +56,119 @@ export default function Header() {
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
     };
-  }, []);
+  }, [isMenuOpen]);
+
+  useEffect(() => {
+    closeSidebar();
+  }, [location.pathname]);
 
   /**
    * @desc 사이드바 열고/닫기
    */
   const toggleSidebar = () => {
     setIsMenuOpen(!isMenuOpen); // 사이드바 토글
-    setMenuList([...MENU_LIST]); // 메뉴 초기화
   };
 
   /**
    * @desc 사이드바 닫으면서 메뉴목록도 초기화 시킴.
    */
   const closeSidebar = () => {
-    const menuEle = menuRef.current;
-    let time = 0;
-    if (menuEle) {
-      time = 300;
-      const menuItems = Array.from(menuEle.querySelectorAll("li"));
-      gsap.to(menuItems, {
-        height: 0,
-        duration: 0.3,
-        stagger: 0.1,
-        display: "none",
-      });
-    }
+    const allUlElements = document.querySelectorAll(".sub"); // Get all the ul elements
+    const sidebarElement = sidebarRef.current; // Get the sidebar element
 
-    setTimeout(() => {
-      setIsMenuOpen(false);
-      setMenuList([...MENU_LIST]);
-    }, time);
+    // 모든 서브메뉴를 닫음
+    allUlElements.forEach((ulElement) => {
+      gsap.to(ulElement, {
+        opacity: 0,
+        maxHeight: 0,
+        duration: 0.5,
+        ease: "power2.easeOut",
+        onComplete: () => {
+          ulElement.style.display = "none";
+        },
+      });
+    });
+
+    // 사이드바를 닫음
+    gsap.to(sidebarElement, {
+      x: "-100%",
+      duration: 0.5,
+      ease: "power2.easeOut",
+      onComplete: () => {
+        sidebarElement.style.display = "none";
+        setActiveIdx(null);
+        setIsMenuOpen(false);
+      },
+    });
   };
 
   /**
    * @desc 서브메뉴 펼치기/접기
    */
-  const toggleAccordion = (index) => {
-    const menuEle = menuRef.current;
-    let time = 0;
-    if (menuEle) {
-      time = 300;
-      const menuItems = Array.from(menuEle.querySelectorAll("li"));
-      gsap.to(menuItems, {
-        height: 0,
-        duration: 0.3,
-        stagger: 0.1,
-        display: "none",
+  const toggleAccordion = (e, index) => {
+    e.stopPropagation();
+
+    if (activeIdx === index) {
+      setActiveIdx(null);
+      closeSubMenu();
+    } else {
+      setActiveIdx(index);
+      openSubMenu(index);
+    }
+  };
+
+  /**
+   * @desc 서브메뉴를 오픈하는 함수
+   * @param {*} index
+   */
+  const openSubMenu = (index) => {
+    // 서브메뉴
+    const ulElement = document.getElementById(`sub_${index}`);
+    // 서브메뉴가 아닌 엘레먼트
+    const otherUlElements = document.querySelectorAll(
+      `.sub:not(#sub_${index})`
+    );
+
+    // 서브메뉴가 아닌 엘레먼트들을 닫음.
+    otherUlElements.forEach((ele) => {
+      gsap.to(ele, {
+        opacity: 0,
+        maxHeight: 0,
+        duration: 0.5,
+        ease: "power2.easeOut",
+        onComplete: () => {
+          ele.style.display = "none";
+        },
+      });
+    });
+
+    // 선택 된 서브메뉴를 오픈함.
+    gsap.set(ulElement, { display: "block" });
+    gsap.to(ulElement, {
+      opacity: 1,
+      maxHeight: ulElement.scrollHeight + "px", // Set the maxHeight to the actual scrollHeight
+      duration: 0.5,
+      ease: "power2.easeInOut",
+    });
+  };
+
+  /**
+   * @desc 같은 서브메뉴 선택 시 서브메뉴를 닫는 함수
+   */
+  const closeSubMenu = () => {
+    if (activeIdx !== null) {
+      const ulElement = document.getElementById(`sub_${activeIdx}`);
+      gsap.to(ulElement, {
+        opacity: 0,
+        maxHeight: 0,
+        duration: 0.5,
+        ease: "power2.easeOut",
+        onComplete: () => {
+          ulElement.style.display = "none";
+          setActiveIdx(null);
+        },
       });
     }
-
-    setTimeout(() => {
-      setMenuList((prevState) =>
-        prevState.map((menu) => {
-          if (menu.index === index) {
-            return { ...menu, isOpen: !menu.isOpen };
-          } else {
-            return { ...menu, isOpen: false };
-          }
-        })
-      );
-    }, time);
   };
 
   return (
@@ -220,44 +186,96 @@ export default function Header() {
           </div>
           <nav>
             <ul className="menu-list">
-              {menuList.map((menu) => (
-                <li key={menu.index}>
-                  {menu.pathname ? (
-                    <Link to={menu.pathname}>
-                      <div className="parent" onClick={closeSidebar}>
-                        <span>{menu.name}</span>
-                      </div>
+              <li>
+                <Link className="parent" to={"/"}>
+                  <div>
+                    <span>Home</span>
+                  </div>
+                </Link>
+              </li>
+              <li>
+                <button
+                  className="parent"
+                  onClick={(e) => toggleAccordion(e, 1)}
+                >
+                  <span>About</span>
+                  <FontAwesomeIcon
+                    icon={activeIdx === 1 ? faMinus : faPlus}
+                    size={"sm"}
+                  />
+                </button>
+                <ul className="sub" id={`sub_1`}>
+                  <li>
+                    <Link to={"/about/intro"}>Intro</Link>
+                  </li>
+                  <li>
+                    <Link to={"/about/privacy"}>Privacy</Link>
+                  </li>
+                  <li>
+                    <Link to={"/about/terms"}>Terms</Link>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <button
+                  className="parent"
+                  onClick={(e) => toggleAccordion(e, 2)}
+                >
+                  <span>More</span>
+                  <FontAwesomeIcon
+                    icon={activeIdx === 2 ? faMinus : faPlus}
+                    size={"sm"}
+                  />
+                </button>
+                <ul className="sub" id={`sub_2`}>
+                  <li>
+                    <Link to={"/more/new"}>신상</Link>
+                  </li>
+                  <li>
+                    <Link to={"/more/popular"}>인기</Link>
+                  </li>
+                  <li>
+                    <Link to={"/more/top"}>상의</Link>
+                  </li>
+                  <li>
+                    <Link to={"/more/outer"}>아우터</Link>
+                  </li>
+                  <li>
+                    <Link to={"/more/pants"}>바지</Link>
+                  </li>
+                  <li>
+                    <Link to={"/more/shoes"}>신발</Link>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <button
+                  className="parent"
+                  onClick={(e) => toggleAccordion(e, 3)}
+                >
+                  <span>Example</span>
+                  <FontAwesomeIcon
+                    icon={activeIdx === 3 ? faMinus : faPlus}
+                    size={"sm"}
+                  />
+                </button>
+                <ul className="sub" id={`sub_3`}>
+                  <li>
+                    <Link to={"/example/tab-menu"}>탭메뉴</Link>
+                  </li>
+                  <li>
+                    <Link to={"/example/modal-window"}>모달윈도우</Link>
+                  </li>
+                  <li>
+                    <Link to={"/example/img-gallery"}>이미지갤러리</Link>
+                  </li>
+                  <li>
+                    <Link to={"/example/visual-slide-index-rwd"}>
+                      비쥬얼슬라이드
                     </Link>
-                  ) : (
-                    <div
-                      className="parent"
-                      onClick={() => toggleAccordion(menu.index)}
-                    >
-                      <span>{menu.name}</span>
-                      {menu.subMenuList.length > 0 && (
-                        <button>
-                          <FontAwesomeIcon
-                            icon={menu.isOpen ? faMinus : faPlus}
-                            size={"sm"}
-                          />
-                        </button>
-                      )}
-                    </div>
-                  )}
-
-                  {menu.subMenuList.length > 0 && menu.isOpen && (
-                    <ul ref={menuRef}>
-                      {menu.subMenuList.map((sub) => (
-                        <li key={sub.index}>
-                          <Link to={sub.pathname} onClick={closeSidebar}>
-                            {sub.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              ))}
+                  </li>
+                </ul>
+              </li>
             </ul>
           </nav>
         </div>

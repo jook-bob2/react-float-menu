@@ -6,6 +6,10 @@ import Main from "./pages";
 import AboutIntro from "./pages/about/intro";
 import AboutPrivacy from "./pages/about/privacy";
 import AboutTerms from "./pages/about/terms";
+import ImgGallery from "./pages/example/img-gallery";
+import ModalWindow from "./pages/example/modal-window";
+import TabMenu from "./pages/example/tab-menu";
+import VisualSlideIndexRwd from "./pages/example/visual-slide-index-rwd";
 import MoreNew from "./pages/more/new";
 import MoreOuter from "./pages/more/outer";
 import MorePants from "./pages/more/pants";
@@ -33,6 +37,14 @@ function App() {
             <Route path={"/more/outer"} element={<MoreOuter />} />
             <Route path={"/more/pants"} element={<MorePants />} />
             <Route path={"/more/shoes"} element={<MoreShoes />} />
+            {/* Example */}
+            <Route path={"/example/tab-menu"} element={<TabMenu />} />
+            <Route path={"/example/modal-window"} element={<ModalWindow />} />
+            <Route path={"/example/img-gallery"} element={<ImgGallery />} />
+            <Route
+              path={"/example/visual-slide-index-rwd"}
+              element={<VisualSlideIndexRwd />}
+            />
           </Routes>
         </MainLayout>
       </BrowserRouter>

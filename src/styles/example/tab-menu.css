@@ -1,0 +1,49 @@
+ul,li{
+    margin:0;	
+    padding:0; 
+    list-style:none;
+}
+
+#wrap{
+  width:500px;	
+  position:absolute; 
+  left:50%; 
+  margin-left:-250px; 
+  top:200px; 
+}
+
+ul#tabmenu_list li{	
+  width:100px; height:40px; float:left;
+  background:url("/public/images/tab.jpg");    
+  cursor: pointer;
+}
+
+ul#tabmenu_list li.selected{
+  background:url("/public/images/tab_selected.jpg");   
+  -webkit-transition:0.3s ease;   
+}  
+
+ul#tabmenu_list li span{       
+  display:block; 
+  font:normal 12px/40px Arial; 
+  color:#000000; 
+  text-align:center; 
+  text-decoration:none;
+}
+
+ul#tabmenu_list li.selected span{
+  color:#069
+}  
+
+ul#panel_list{
+  clear:both; border:1px solid #9FB7D4; 
+  border-top:none;
+ 
+}
+
+ul#panel_list li{    
+  padding:10px;
+  text-indent:1em;
+  color:#333;
+  background:#FFFFFF;
+}
