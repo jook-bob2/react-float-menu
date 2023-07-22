@@ -12,8 +12,8 @@ import { Link, useLocation } from "react-router-dom";
 import { gsap } from "gsap";
 
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeIdx, setActiveIdx] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // 사이드바 오픈 여부
+  const [activeIdx, setActiveIdx] = useState(null); // 선택 된 서브메뉴 index
   const sidebarRef = useRef(); // 사이드바 엘레먼트를 담고 있는 레퍼런스
   const location = useLocation();
 
@@ -58,6 +58,9 @@ export default function Header() {
     };
   }, [isMenuOpen]);
 
+  /**
+   * @desc pathname이 변경 될 때마다 사이드바를 닫음.
+   */
   useEffect(() => {
     closeSidebar();
   }, [location.pathname]);
@@ -73,8 +76,8 @@ export default function Header() {
    * @desc 사이드바 닫으면서 메뉴목록도 초기화 시킴.
    */
   const closeSidebar = () => {
-    const allUlElements = document.querySelectorAll(".sub"); // Get all the ul elements
-    const sidebarElement = sidebarRef.current; // Get the sidebar element
+    const allUlElements = document.querySelectorAll(".sub");
+    const sidebarElement = sidebarRef.current;
 
     // 모든 서브메뉴를 닫음
     allUlElements.forEach((ulElement) => {
@@ -146,7 +149,7 @@ export default function Header() {
     gsap.set(ulElement, { display: "block" });
     gsap.to(ulElement, {
       opacity: 1,
-      maxHeight: ulElement.scrollHeight + "px", // Set the maxHeight to the actual scrollHeight
+      maxHeight: ulElement.scrollHeight + "px",
       duration: 0.5,
       ease: "power2.easeInOut",
     });
