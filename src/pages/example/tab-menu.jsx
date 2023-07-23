@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import "../../styles/example/tab-menu.css";
 
 export default function TabMenu() {
-  const tabMenuItems = ["JavaScript", "CSS", "HTML", "jQuery", "XHTML"];
   const [selectedTab, setSelectedTab] = useState(0);
 
   const handleTabClick = (index) => {
@@ -12,15 +11,36 @@ export default function TabMenu() {
   return (
     <div id="wrap">
       <ul id="tabmenu_list">
-        {tabMenuItems.map((item, index) => (
-          <li
-            key={index}
-            onClick={() => handleTabClick(index)}
-            className={selectedTab === index ? "selected" : ""}
-          >
-            <span>{item}</span>
-          </li>
-        ))}
+        <li
+          onClick={() => handleTabClick(0)}
+          className={selectedTab === 0 ? "selected" : ""}
+        >
+          <span>JavaScript</span>
+        </li>
+        <li
+          onClick={() => handleTabClick(1)}
+          className={selectedTab === 1 ? "selected" : ""}
+        >
+          <span>CSS</span>
+        </li>
+        <li
+          onClick={() => handleTabClick(2)}
+          className={selectedTab === 2 ? "selected" : ""}
+        >
+          <span>HTML</span>
+        </li>
+        <li
+          onClick={() => handleTabClick(3)}
+          className={selectedTab === 3 ? "selected" : ""}
+        >
+          <span>jQuery</span>
+        </li>
+        <li
+          onClick={() => handleTabClick(4)}
+          className={selectedTab === 4 ? "selected" : ""}
+        >
+          <span>XHTML</span>
+        </li>
       </ul>
       <ul id="panel_list">
         <li style={{ display: selectedTab === 0 ? "block" : "none" }}>
